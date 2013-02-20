@@ -22,7 +22,7 @@ public class PopulateUbiShare extends Activity {
 	private static String LOG_TAG = "populateUbiShare";
 	ContentResolver cr;
 	
-	private static String accountName = "my Box account";
+	String accountName = "";
 	private static String accountType = "com.box";
 	
 	@Override
@@ -32,22 +32,6 @@ public class PopulateUbiShare extends Activity {
 		 setContentView(R.layout.main);
 		
 		cr = this.getApplication().getContentResolver();
-		this.cleanUpDb();
-		long idKnut = this.populatePeople("knut.roedhale@gmail.com", "Knut Roedhale", "knut.roedhale@gmail.com", "rescue team leader");
-		long idKari = this.populatePeople("kari.rosevinger@gmail.com", "Kari  Rosevinger", "kari.rosevinger@gmail.com", "Rescue member (medic)");
-		long idOla = this.populatePeople("ola.gullkjede@gmail.com", "Ola Gullkjede", "ola.gullkjede@gmail.com", "Rescue member (mechanics)");
-		long idAage = this.populatePeople("aage.lillefot@gmail.com", "Aage Lillefot", "aage.lillefot@gmail.com", "Rescue member (network responsible)");
-		long idUnni = this.populatePeople("unni.stornese@gmail.com", "Unni Stornese", "unni.stornese@gmail.com", "Rescue member (cook)");
-		
-
-		
-		long iJacketID =  populateService("org.societies.thirdpartyservices.ijacket","SocialContract.ServiceConstants.SERVICE_TYPE_PROVIDER", 
-		 		"iJacket", "A service to communicate with the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
-		 		,"org.societies.thirdpartyservices.ijacketclient","","http://files.ubicollab.org/app/iJacket.apk",0);
-
-		long iJacketClientID =  populateService("org.societies.thirdpartyservices.ijacketclient","SocialContract.ServiceConstants.SERVICE_TYPE_CLIENT", 
-		 		"iJacketClient", "A service client for remote control of the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
-		 		,"","","http://files.ubicollab.org/app/iJacketClient.apk",0);
 
 		
 /*		this.populateMe("tcarlyle@gmail.com");
@@ -67,8 +51,24 @@ public class PopulateUbiShare extends Activity {
 
     /** Called when the user touches the button */
     public void clickButton(View view) {
+    	accountName = fetchAccountName();
     	cleanUpDb();
-    	
+		long idKnut = this.populatePeople("knut.roedhale@gmail.com", "Knut Roedhale", "knut.roedhale@gmail.com", "rescue team leader");
+		long idKari = this.populatePeople("kari.rosevinger@gmail.com", "Kari  Rosevinger", "kari.rosevinger@gmail.com", "Rescue member (medic)");
+		long idOla = this.populatePeople("ola.gullkjede@gmail.com", "Ola Gullkjede", "ola.gullkjede@gmail.com", "Rescue member (mechanics)");
+		long idAage = this.populatePeople("aage.lillefot@gmail.com", "Aage Lillefot", "aage.lillefot@gmail.com", "Rescue member (network responsible)");
+		long idUnni = this.populatePeople("unni.stornese@gmail.com", "Unni Stornese", "unni.stornese@gmail.com", "Rescue member (cook)");
+		
+
+		
+		long iJacketID =  populateService("org.societies.thirdpartyservices.ijacket","SocialContract.ServiceConstants.SERVICE_TYPE_PROVIDER", 
+		 		"iJacket", "A service to communicate with the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
+		 		,"org.societies.thirdpartyservices.ijacketclient","","http://files.ubicollab.org/app/iJacket.apk",0);
+
+		long iJacketClientID =  populateService("org.societies.thirdpartyservices.ijacketclient","SocialContract.ServiceConstants.SERVICE_TYPE_CLIENT", 
+		 		"iJacketClient", "A service client for remote control of the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
+		 		,"","","http://files.ubicollab.org/app/iJacketClient.apk",0);
+
     	
     }
 
@@ -82,12 +82,13 @@ public class PopulateUbiShare extends Activity {
 	
     private int cleanUpDb(){
 
+    	Log.d(LOG_TAG, "cleaning up db");
     	Uri uri;
 		int me_id;
 		int me_people_id;
 		// get ME 
 		
-		uri =  Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.ME);
+		/*uri =  Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.ME);
     	String mSelectionClause = SocialContract.Me.ACCOUNT_TYPE + " = ?";
     	String[] mSelectionArgs = {accountType};
 		
@@ -97,58 +98,58 @@ public class PopulateUbiShare extends Activity {
        		return 0;
        	}else{
        		// user is already there, if it is pending, Ill change it to not pending
-    		me_id  = cursor.getColumnIndex(SocialContract.Me._ID);
+       		me_id  = cursor.getColumnIndex(SocialContract.Me._ID);
     		me_people_id  = cursor.getColumnIndex(SocialContract.Me._ID_PEOPLE);
     		
-       	}
+       	}*/
        	
        	// FIRST I CLEAN THE NON SYNCHRONIZED TABLES, BY DELETING
        	
        	
        	// clean PEOPLE table 
        	
-       	mSelectionClause = SocialContract.People._ID + " = ?";
-    	mSelectionArgs[0] = "*";
+		String	mSelectionClause = SocialContract.People._ID + " LIKE ?";
+		String[]  mSelectionArgs = {"%"};
     	int nb = cr.delete(SocialContract.People.CONTENT_URI,mSelectionClause,mSelectionArgs);
     	Log.d(LOG_TAG, nb + " people deleted");
        	
     	// clean Services table 
-    	mSelectionClause = SocialContract.Services._ID + " = ?";
+    	mSelectionClause = SocialContract.Services._ID + " LIKE ?";
     	nb = cr.delete(SocialContract.Services.CONTENT_URI,mSelectionClause,mSelectionArgs);
     	Log.d(LOG_TAG, nb + " Services deleted");
        	
     	// CLEAN SYNCHRONIZED tables; BY SETTING THE DELETE FLAG TO 1
     	
     	// clean Communities table 
-    	mSelectionClause = SocialContract.Communities._ID + " = ?";
+    	mSelectionClause = SocialContract.Communities._ID + " LIKE ?";
     	ContentValues mUpdateValues = new ContentValues();
     	mUpdateValues.put(SocialContract.Communities.DELETED, 1);
     	nb = cr.update(SocialContract.Communities.CONTENT_URI,mUpdateValues,mSelectionClause,mSelectionArgs);
     	Log.d(LOG_TAG, nb + " Communities deleted");
     	
     	// clean CommunityActivity table 
-    	mSelectionClause = SocialContract.CommunityActivity._ID + " = ?";
+    	mSelectionClause = SocialContract.CommunityActivity._ID + " LIKE ?";
     	mUpdateValues = new ContentValues();
     	mUpdateValues.put(SocialContract.CommunityActivity.DELETED, 1);
     	nb = cr.update(SocialContract.CommunityActivity.CONTENT_URI,mUpdateValues,mSelectionClause,mSelectionArgs);
     	Log.d(LOG_TAG, nb + " CommunityActivity deleted");
     	
     	// clean Membership table 
-    	mSelectionClause = SocialContract.Membership._ID + " = ?";
+    	mSelectionClause = SocialContract.Membership._ID + " LIKE ?";
     	mUpdateValues = new ContentValues();
     	mUpdateValues.put(SocialContract.Membership.DELETED, 1);
     	nb = cr.update(SocialContract.Membership.CONTENT_URI,mUpdateValues,mSelectionClause,mSelectionArgs);
     	Log.d(LOG_TAG, nb + " Membership deleted");
 
     	// clean Sharing table 
-    	mSelectionClause = SocialContract.Sharing._ID + " = ?";
+    	mSelectionClause = SocialContract.Sharing._ID + " LIKE ?";
     	mUpdateValues = new ContentValues();
     	mUpdateValues.put(SocialContract.Sharing.DELETED, 1);
     	nb = cr.delete(SocialContract.Sharing.CONTENT_URI,mSelectionClause,mSelectionArgs);
     	Log.d(LOG_TAG, nb + " Sharing deleted");
 
     	// clean Relationship table 
-    	mSelectionClause = SocialContract.Relationship._ID + " = ?";
+    	mSelectionClause = SocialContract.Relationship._ID + " LIKE ?";
     	mUpdateValues = new ContentValues();
     	mUpdateValues.put(SocialContract.Relationship.DELETED, 1);
     	nb = cr.update(SocialContract.Relationship.CONTENT_URI,mUpdateValues,mSelectionClause,mSelectionArgs);
@@ -158,6 +159,34 @@ public class PopulateUbiShare extends Activity {
     }
 
 	
+    
+    private String fetchAccountName(){
+		Uri uri;
+
+		// check if my account is on ME and is not pending
+		
+		uri =  Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.ME);
+    	String mSelectionClause = SocialContract.Me.ACCOUNT_TYPE + " = ?";
+    	String[] mSelectionArgs = {accountType};
+		
+    	Cursor cursor = cr.query(uri,null,mSelectionClause,mSelectionArgs,null);
+       	if (null == cursor || cursor.getCount() < 1){
+    			Log.d(LOG_TAG, "couldnt retrieve account name from ME table");
+    			return "";
+       	}else{
+       		// user is already there, if it is pending, Ill change it to not pending
+    		int i  = cursor.getColumnIndex(SocialContract.Me.ACCOUNT_NAME);
+    		if( i == -1){
+    			Log.d(LOG_TAG, "couldnt get Account name collumn from ME table");
+    			return "";
+    		}
+    		String temp = "";
+    		cursor.moveToFirst();
+    		temp =	cursor.getString(i);
+    		return temp;
+       	}
+    }
+
 	
 	
 			
@@ -175,6 +204,8 @@ public class PopulateUbiShare extends Activity {
      */
     
 	private long populatePeople(String userName, String name, String email, String description) {
+		
+		Log.d(LOG_TAG, "going to populate " + userName);
 		
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(SocialContract.People.USER_NAME , userName);
@@ -219,7 +250,7 @@ public class PopulateUbiShare extends Activity {
 			String url, long ownerId) {
 		
 		
-		
+		Log.d(LOG_TAG, "going to populate " + serviceName);
 		
 		ContentValues initialValues = new ContentValues();
 
