@@ -4,6 +4,7 @@ package org.ubicollab.examples.populateubishare;
 import java.util.Date;
 
 import org.societies.android.api.cis.SocialContract;
+import org.societies.thirdpartyservices.ijacketlib.IJacketDefines;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -48,11 +49,7 @@ public class PopulateUbiShare extends Activity {
 		Toast.makeText(PopulateUbiShare.this, "done populating", Toast.LENGTH_SHORT).show();*/
 	}
 
-
-    /** Called when the user touches the button */
-    public void clickButton(View view) {
-    	accountName = fetchAccountName();
-    	cleanUpDb();
+	public void populateIDisasterDataSet(){
 		long idKnut = this.populatePeople("knut.roedhale@gmail.com", "Knut Roedhale", "knut.roedhale@gmail.com", "rescue team leader");
 		long idKari = this.populatePeople("kari.rosevinger@gmail.com", "Kari  Rosevinger", "kari.rosevinger@gmail.com", "Rescue member (medic)");
 		long idOla = this.populatePeople("ola.gullkjede@gmail.com", "Ola Gullkjede", "ola.gullkjede@gmail.com", "Rescue member (mechanics)");
@@ -68,7 +65,40 @@ public class PopulateUbiShare extends Activity {
 		long iJacketClientID =  populateService("org.societies.thirdpartyservices.ijacketclient","SocialContract.ServiceConstants.SERVICE_TYPE_CLIENT", 
 		 		"iJacketClient", "A service client for remote control of the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
 		 		,"","","http://files.ubicollab.org/app/iJacketClient.apk",0);
+			
+	}
+	
+	public void populateIJacketClienDataSet(){
+		long idThomas = this.populatePeople("tcarlyle@gmail.com", "Thomas Vilarinho", "tcarlyle@gmail.com", "no description");
+		long idKari = this.populatePeople("kari.rosevinger@gmail.com", "Kari  Rosevinger", "kari.rosevinger@gmail.com", "Rescue member (medic)");
+		
 
+		
+		long iJacketID =  populateService(IJacketDefines.AccountData.IJACKET_SERVICE_NAME,"SocialContract.ServiceConstants.SERVICE_TYPE_PROVIDER", 
+		 		"iJacket", "A service to communicate with the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
+		 		,"org.societies.thirdpartyservices.ijacketclient","","http://files.ubicollab.org/app/iJacket.apk",0);
+
+		long iJacketClientID =  populateService(IJacketDefines.AccountData.IJACKET_CLIENT_SERVICE_NAME,"SocialContract.ServiceConstants.SERVICE_TYPE_CLIENT", 
+		 		"iJacketClient", "A service client for remote control of the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
+		 		,"","","http://files.ubicollab.org/app/iJacketClient.apk",0);
+		
+		long fireOperationID = populateCommunity(idThomas, "disaster", "Fire in Mukegata", "Fire extinguish operation in Munkegata");
+
+		long earthquakeOperation  = populateCommunity(idThomas, "disaster", "Earthquake in Mexico City", "Earthquake in Mexico City");
+
+		long tsunamiOperation  = populateCommunity(idThomas, "disaster", "Fire in Mukegata", "Fire extinguish operation in Munkegata");
+
+		long iJClientInFire = populateServInCommunity(fireOperationID, idThomas, iJacketClientID);
+		
+		long iJacketInFire = populateServInCommunity(fireOperationID, idThomas, iJacketID);
+		
+	}
+
+    /** Called when the user touches the button */
+    public void clickButton(View view) {
+    	accountName = fetchAccountName();
+    	cleanUpDb();
+    	populateIJacketClienDataSet();
     	
     }
 
@@ -277,6 +307,77 @@ public class PopulateUbiShare extends Activity {
 	}
 
 	
+	/**
+	 * 
+	 * This method populates a community
+	 * 
+	 * @param ownerUserName
+	 * @param type
+	 * @param name
+	 * @param description
+	 * @return community_ID
+	 */
+	
+	private long populateCommunity(long owner, String type, String name, String description){
+		
+		
+		Log.d(LOG_TAG, "going to populate " + name);
+	    // now we add the community
+		ContentValues initialValues = new ContentValues();
+		
+		initialValues.put(SocialContract.Communities.GLOBAL_ID , SocialContract.GLOBAL_ID_PENDING);
+		initialValues.put(SocialContract.Communities.TYPE , type);
+		initialValues.put(SocialContract.Communities.NAME , name);
+		initialValues.put(SocialContract.Communities._ID_OWNER, owner);
+		initialValues.put(SocialContract.Communities.DESCRIPTION , description);
+		initialValues.put(SocialContract.Communities.ACCOUNT_NAME , accountName);
+		initialValues.put(SocialContract.Communities.ACCOUNT_TYPE , accountType);
+		
+		Uri uri = Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.COMMUNITIES);
+		Uri responseURI = cr.insert(uri,initialValues);
+		
+		if(null == responseURI){
+			Log.d(LOG_TAG, "failed trying to add the user on Communities table");
+			return 0;
+		}
+
+		return ContentUris.parseId(responseURI);
+	}
+	
+	/**
+	 * 
+	 * share a service in a community
+	 * 
+	 * @param communityID
+	 * @param ownerID
+	 * @param serviceID
+	 * @return sharing_ID
+	 */
+	
+	private long populateServInCommunity(long communityID, long ownerID, long serviceID){
+		
+		
+		Log.d(LOG_TAG, "going to populate " + serviceID + " shared on " + communityID);
+	    // now we add the community
+		ContentValues initialValues = new ContentValues();
+		
+		initialValues.put(SocialContract.Sharing._ID_COMMUNITY, communityID);
+		initialValues.put(SocialContract.Sharing._ID_OWNER , ownerID);
+		initialValues.put(SocialContract.Sharing._ID_SERVICE , serviceID);
+		initialValues.put(SocialContract.Sharing.ACCOUNT_NAME , accountName);
+		initialValues.put(SocialContract.Sharing.ACCOUNT_TYPE , accountType);
+		
+		Uri uri = Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.SHARING);
+		Uri responseURI = cr.insert(uri,initialValues);
+		
+		if(null == responseURI){
+			Log.d(LOG_TAG, "failed trying to add service on Sharing table");
+			return 0;
+		}
+
+		return ContentUris.parseId(responseURI);
+	}
+	
 	
 	// METHODS TO BE REWORKED
 	
@@ -354,57 +455,7 @@ public class PopulateUbiShare extends Activity {
     
 	
 	
-	/**
-	 * 
-	 * This method first retrieves the user (based on the ownerUserName field)
-	 * and then creates a community with that user as the owner
-	 * 
-	 * @param ownerUserName
-	 * @param type
-	 * @param name
-	 * @param description
-	 * @return
-	 */
-	
-	private int populateCommunity(String ownerUserName, String type, String name, String description){
-		
-		// first I need to retrieve the ID from the owner
-		Uri uri =  Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.PEOPLE);
-		String mSelectionClause = SocialContract.People.GLOBAL_ID + " = ?";
-		String[] mSelectionArgs = {ownerUserName};
-		Cursor cursor = cr.query(uri,null,mSelectionClause,mSelectionArgs,null);
-		if (null == cursor || cursor.getCount() != 1){
-		 	Log.d(LOG_TAG, "community owner is not on PEOPLEs table or is duplicated there");
-		 	return 0;
-		}
-		int index  = cursor.getColumnIndex(SocialContract.People._ID);
-	    String	ownerID = cursor.getString(index);
 
-	    // now we add the community
-		ContentValues initialValues = new ContentValues();
-		
-		initialValues.put(SocialContract.Communities.GLOBAL_ID , SocialContract.GLOBAL_ID_PENDING);
-		initialValues.put(SocialContract.Communities.TYPE , type);
-		initialValues.put(SocialContract.Communities.NAME , name);
-		initialValues.put(SocialContract.Communities._ID_OWNER, ownerID);
-		initialValues.put(SocialContract.Communities.DESCRIPTION , description);
-		initialValues.put(SocialContract.Communities.CREATION_DATE, new Date().getTime() / 1000);
-		initialValues.put(SocialContract.Communities.LAST_MODIFIED_DATE, new Date().getTime() / 1000);
-		initialValues.put(SocialContract.Communities.ACCOUNT_NAME , accountName);
-		initialValues.put(SocialContract.Communities.ACCOUNT_TYPE , accountType);
-		
-		uri = Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.COMMUNITIES);
-		Uri responseURI = cr.insert(uri,initialValues);
-		
-		if(null == responseURI){
-			Log.d(LOG_TAG, "failed trying to add the user on Communities table");
-			return 0;
-		}
-
-		return 1;
-	}
-	
-	
 	
 
 
