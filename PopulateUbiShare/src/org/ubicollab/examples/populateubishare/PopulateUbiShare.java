@@ -284,6 +284,7 @@ public class PopulateUbiShare extends Activity {
 		
 		ContentValues initialValues = new ContentValues();
 
+		initialValues.put(SocialContract.Services.GLOBAL_ID , globalID);
 		initialValues.put(SocialContract.Services.TYPE , serviceType);
 		initialValues.put(SocialContract.Services.NAME , serviceName);
 		initialValues.put(SocialContract.Services._ID_OWNER, ownerId);
