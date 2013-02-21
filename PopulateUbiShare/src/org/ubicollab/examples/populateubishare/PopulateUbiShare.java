@@ -86,11 +86,14 @@ public class PopulateUbiShare extends Activity {
 
 		long earthquakeOperation  = populateCommunity(idThomas, "disaster", "Earthquake in Mexico City", "Earthquake in Mexico City");
 
-		long tsunamiOperation  = populateCommunity(idThomas, "disaster", "Fire in Mukegata", "Fire extinguish operation in Munkegata");
+		long tsunamiOperation  = populateCommunity(idThomas, "disaster", "Tsunami in Haugesund", "Tsunami opperation in Haugesund");
 
 		long iJClientInFire = populateServInCommunity(fireOperationID, idThomas, iJacketClientID);
 		
 		long iJacketInFire = populateServInCommunity(fireOperationID, idThomas, iJacketID);
+
+		long iJClientInTsunami = populateServInCommunity(tsunamiOperation, idThomas, iJacketClientID);
+
 		
 	}
 
@@ -98,8 +101,8 @@ public class PopulateUbiShare extends Activity {
     public void clickButton(View view) {
     	accountName = fetchAccountName();
     	cleanUpDb();
-    	populateIJacketClienDataSet();
-    	
+    	//populateIJacketClienDataSet();
+    	populateIDisasterDataSet();
     }
 
 	
