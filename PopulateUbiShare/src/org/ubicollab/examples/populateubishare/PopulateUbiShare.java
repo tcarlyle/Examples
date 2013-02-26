@@ -241,6 +241,7 @@ public class PopulateUbiShare extends Activity {
 		Log.d(LOG_TAG, "going to populate " + userName);
 		
 		ContentValues initialValues = new ContentValues();
+		initialValues.put(SocialContract.People.GLOBAL_ID , userName);
 		initialValues.put(SocialContract.People.USER_NAME , userName);
 		initialValues.put(SocialContract.People.NAME , name);
 		initialValues.put(SocialContract.People.EMAIL , email);
