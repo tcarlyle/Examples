@@ -50,6 +50,8 @@ public class PopulateUbiShare extends Activity {
 	}
 
 	public void populateIDisasterDataSet(){
+		
+		//long idThom = this.populatePeople("tcarlyle@gmail.com", "Thomas Roedhale", "tcarlyle@gmail.com", "aaa");
 		long idKnut = this.populatePeople("knut.roedhale@gmail.com", "Knut Roedhale", "knut.roedhale@gmail.com", "rescue team leader");
 		long idKari = this.populatePeople("kari.rosevinger@gmail.com", "Kari  Rosevinger", "kari.rosevinger@gmail.com", "Rescue member (medic)");
 		long idOla = this.populatePeople("ola.gullkjede@gmail.com", "Ola Gullkjede", "ola.gullkjede@gmail.com", "Rescue member (mechanics)");
@@ -69,7 +71,9 @@ public class PopulateUbiShare extends Activity {
 	}
 	
 	public void populateIJacketClienDataSet(){
-		long idThomas = this.populatePeople("tcarlyle@gmail.com", "Thomas Vilarinho", "tcarlyle@gmail.com", "no description");
+		//long idThomas = this.populatePeople("tcarlyle@gmail.com", "Thomas Vilarinho", "tcarlyle@gmail.com", "no description");
+		long idThomas = addsMeToPeople();
+		
 		long idKari = this.populatePeople("kari.rosevinger@gmail.com", "Kari  Rosevinger", "kari.rosevinger@gmail.com", "Rescue member (medic)");
 		
 
@@ -87,12 +91,10 @@ public class PopulateUbiShare extends Activity {
 		long earthquakeOperation  = populateCommunity(idThomas, "disaster", "Earthquake in Mexico City", "Earthquake in Mexico City");
 
 		long tsunamiOperation  = populateCommunity(idThomas, "disaster", "Tsunami in Haugesund", "Tsunami opperation in Haugesund");
-
-		long iJClientInFire = populateServInCommunity(fireOperationID, idThomas, iJacketClientID);
 		
 		long iJacketInFire = populateServInCommunity(fireOperationID, idThomas, iJacketID);
 
-		long iJClientInTsunami = populateServInCommunity(tsunamiOperation, idThomas, iJacketClientID);
+		long iJacketTsunami = populateServInCommunity(tsunamiOperation, idThomas, iJacketID);
 
 		
 	}
@@ -101,8 +103,8 @@ public class PopulateUbiShare extends Activity {
     public void clickButton(View view) {
     	accountName = fetchAccountName();
     	cleanUpDb();
-    	//populateIJacketClienDataSet();
-    	populateIDisasterDataSet();
+    	populateIJacketClienDataSet();
+    	//populateIDisasterDataSet();
     }
 
 	
@@ -246,6 +248,7 @@ public class PopulateUbiShare extends Activity {
 		initialValues.put(SocialContract.People.NAME , name);
 		initialValues.put(SocialContract.People.EMAIL , email);
 		initialValues.put(SocialContract.People.DESCRIPTION , description);
+		initialValues.put(SocialContract.People.DIRTY , 1);
 		initialValues.put(SocialContract.People.ACCOUNT_NAME , accountName);
 		initialValues.put(SocialContract.People.ACCOUNT_TYPE , accountType);
 		initialValues.put(SocialContract.People.CREATION_DATE, new Date().getTime() / 1000);
@@ -297,6 +300,7 @@ public class PopulateUbiShare extends Activity {
 		initialValues.put(SocialContract.Services.DEPENDENCY, dependency);
 		initialValues.put(SocialContract.Services.CONFIG, config);
 		initialValues.put(SocialContract.Services.URL, url);
+		initialValues.put(SocialContract.Services.DIRTY, 1);
 		initialValues.put(SocialContract.Services.ACCOUNT_NAME , accountName);
 		initialValues.put(SocialContract.Services.ACCOUNT_TYPE , accountType);
 	
@@ -314,7 +318,7 @@ public class PopulateUbiShare extends Activity {
 	
 	/**
 	 * 
-	 * This method populates a community
+	 * This method populates a community and the membership table as well
 	 * 
 	 * @param ownerUserName
 	 * @param type
@@ -335,6 +339,7 @@ public class PopulateUbiShare extends Activity {
 		initialValues.put(SocialContract.Communities.NAME , name);
 		initialValues.put(SocialContract.Communities._ID_OWNER, owner);
 		initialValues.put(SocialContract.Communities.DESCRIPTION , description);
+		initialValues.put(SocialContract.Communities.DIRTY , 1);
 		initialValues.put(SocialContract.Communities.ACCOUNT_NAME , accountName);
 		initialValues.put(SocialContract.Communities.ACCOUNT_TYPE , accountType);
 		
@@ -345,8 +350,27 @@ public class PopulateUbiShare extends Activity {
 			Log.d(LOG_TAG, "failed trying to add the user on Communities table");
 			return 0;
 		}
+		
+		long community_id = ContentUris.parseId(responseURI);
+		
+		initialValues = new ContentValues();
+		initialValues.put(SocialContract.Membership.ACCOUNT_NAME , accountName);
+		initialValues.put(SocialContract.Membership.ACCOUNT_TYPE , accountType);
+		initialValues.put(SocialContract.Membership.DIRTY , 1);
+		initialValues.put(SocialContract.Membership._ID_COMMUNITY, community_id);
+		initialValues.put(SocialContract.Membership._ID_MEMBER,owner);
+		initialValues.put(SocialContract.Membership.TYPE,"owner");
 
-		return ContentUris.parseId(responseURI);
+		uri = Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.MEMBERSHIP);
+		responseURI = cr.insert(uri,initialValues);
+		
+		if(null == responseURI){
+			Log.d(LOG_TAG, "failed trying to add the user as owner of ther community");
+			return 0;
+		}
+
+		
+		return community_id;
 	}
 	
 	/**
@@ -371,6 +395,7 @@ public class PopulateUbiShare extends Activity {
 		initialValues.put(SocialContract.Sharing._ID_SERVICE , serviceID);
 		initialValues.put(SocialContract.Sharing.ACCOUNT_NAME , accountName);
 		initialValues.put(SocialContract.Sharing.ACCOUNT_TYPE , accountType);
+		initialValues.put(SocialContract.Sharing.DIRTY , 1);
 		
 		Uri uri = Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.SHARING);
 		Uri responseURI = cr.insert(uri,initialValues);
@@ -382,6 +407,26 @@ public class PopulateUbiShare extends Activity {
 
 		return ContentUris.parseId(responseURI);
 	}
+
+	
+	// return People ID
+    private long addsMeToPeople(){
+		if(accountName.equals(""))
+			accountName = fetchAccountName();
+		long idPeople_forMe = this.populatePeople(accountName, "My Name", accountName, "no description");
+
+    	// update ME table 
+    	String mSelectionClause = SocialContract.Me.ACCOUNT_NAME + " = ?";
+    	String [] mSelectionArgs = {accountName};
+    	ContentValues mUpdateValues = new ContentValues();
+    	mUpdateValues.put(SocialContract.Me._ID_PEOPLE, idPeople_forMe);
+    	int nb = cr.update(SocialContract.Me.CONTENT_URI,mUpdateValues,mSelectionClause,mSelectionArgs);
+    	Log.d(LOG_TAG, nb + " me account updated");
+		
+		return idPeople_forMe;
+       		
+       	}
+
 	
 	
 	// METHODS TO BE REWORKED
