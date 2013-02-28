@@ -103,8 +103,9 @@ public class PopulateUbiShare extends Activity {
     public void clickButton(View view) {
     	accountName = fetchAccountName();
     	cleanUpDb();
-    	populateIJacketClienDataSet();
-    	//populateIDisasterDataSet();
+    	//populateIJacketClienDataSet();
+    	populateIDisasterDataSet();
+    	Toast.makeText(PopulateUbiShare.this, "done populating", Toast.LENGTH_SHORT).show();
     }
 
 	
