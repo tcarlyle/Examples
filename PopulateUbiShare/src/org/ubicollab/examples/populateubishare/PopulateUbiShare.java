@@ -4,10 +4,12 @@ package org.ubicollab.examples.populateubishare;
 import java.util.Date;
 
 import org.societies.android.api.cis.SocialContract;
+import org.societies.android.api.cis.SupportedAccountTypes;
 import org.societies.thirdpartyservices.ijacketlib.IJacketDefines;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -24,7 +26,7 @@ public class PopulateUbiShare extends Activity {
 	ContentResolver cr;
 	
 	String accountName = "";
-	private static String accountType = "com.box";
+	private static String accountType = SupportedAccountTypes.COM_BOX;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -58,32 +60,34 @@ public class PopulateUbiShare extends Activity {
 		long idAage = this.populatePeople("aage.lillefot@gmail.com", "Aage Lillefot", "aage.lillefot@gmail.com", "Rescue member (network responsible)");
 		long idUnni = this.populatePeople("unni.stornese@gmail.com", "Unni Stornese", "unni.stornese@gmail.com", "Rescue member (cook)");
 		
-
 		
-		long iJacketID =  populateService("org.societies.thirdpartyservices.ijacket","SocialContract.ServiceConstants.SERVICE_TYPE_PROVIDER", 
-		 		"iJacket", "A service to communicate with the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
+
+		long iJacketID =  populateService("org.societies.thirdpartyservices.ijacket",SocialContract.ServiceConstants.SERVICE_TYPE_PROVIDER, 
+		 		"iJacket", "A service to communicate with the smart Jacket",SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED
 		 		,"org.societies.thirdpartyservices.ijacketclient","","http://files.ubicollab.org/app/iJacket.apk",0);
 
-		long iJacketClientID =  populateService("org.societies.thirdpartyservices.ijacketclient","SocialContract.ServiceConstants.SERVICE_TYPE_CLIENT", 
-		 		"iJacketClient", "A service client for remote control of the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
+		long iJacketClientID =  populateService("org.societies.thirdpartyservices.ijacketclient",SocialContract.ServiceConstants.SERVICE_TYPE_CLIENT, 
+		 		"iJacketClient", "A service client for remote control of the smart Jacket",SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED
 		 		,"","","http://files.ubicollab.org/app/iJacketClient.apk",0);
 			
 	}
 	
-	public void populateIJacketClienDataSet(){
-		//long idThomas = this.populatePeople("tcarlyle@gmail.com", "Thomas Vilarinho", "tcarlyle@gmail.com", "no description");
-		long idThomas = addsMeToPeople();
+	public void populateIJacketThomasDataSet(){
+		long idThomas = this.populatePeople("tcarlyle@gmail.com", "Thomas Vilarinho", "tcarlyle@gmail.com", "no description");
+		//long idThomas = addsMeToPeople();
 		
-		long idKari = this.populatePeople("kari.rosevinger@gmail.com", "Kari  Rosevinger", "kari.rosevinger@gmail.com", "Rescue member (medic)");
+		long idAage = this.populatePeople("aage.lillefot@gmail.com", "Aage Lillefot", "aage.lillefot@gmail.com", "Rescue member (network responsible)");
 		
 
+		if( linksMeToPeople() <1)
+			Log.d(LOG_TAG, "error linking people and me");
 		
-		long iJacketID =  populateService(IJacketDefines.AccountData.IJACKET_SERVICE_NAME,"SocialContract.ServiceConstants.SERVICE_TYPE_PROVIDER", 
-		 		"iJacket", "A service to communicate with the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
+		long iJacketID =  populateService("org.societies.thirdpartyservices.ijacket",SocialContract.ServiceConstants.SERVICE_TYPE_PROVIDER, 
+		 		"iJacket", "A service to communicate with the smart Jacket",SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED
 		 		,"org.societies.thirdpartyservices.ijacketclient","","http://files.ubicollab.org/app/iJacket.apk",0);
 
-		long iJacketClientID =  populateService(IJacketDefines.AccountData.IJACKET_CLIENT_SERVICE_NAME,"SocialContract.ServiceConstants.SERVICE_TYPE_CLIENT", 
-		 		"iJacketClient", "A service client for remote control of the smart Jacket","SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED"
+		long iJacketClientID =  populateService("org.societies.thirdpartyservices.ijacketclient",SocialContract.ServiceConstants.SERVICE_TYPE_CLIENT, 
+		 		"iJacketClient", "A service client for remote control of the smart Jacket",SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED
 		 		,"","","http://files.ubicollab.org/app/iJacketClient.apk",0);
 		
 		long fireOperationID = populateCommunity(idThomas, "disaster", "Fire in Mukegata", "Fire extinguish operation in Munkegata");
@@ -92,20 +96,53 @@ public class PopulateUbiShare extends Activity {
 
 		long tsunamiOperation  = populateCommunity(idThomas, "disaster", "Tsunami in Haugesund", "Tsunami opperation in Haugesund");
 		
+		long AageInFire = populateMembership(idAage, fireOperationID, "member");
+		
 		long iJacketInFire = populateServInCommunity(fireOperationID, idThomas, iJacketID);
 
 		long iJacketTsunami = populateServInCommunity(tsunamiOperation, idThomas, iJacketID);
+		
+		
+		// code that triggers an immediate sync
+/*		Bundle bundle = new Bundle();
+		bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+		bundle.putBoolean(ContentResolver.SYNC_EXTRAS_FORCE, true);
+		bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+		ContentResolver.requestSync(null, SocialContract.AUTHORITY_STRING, bundle);*/
+		//Log.d(LOG_TAG, "immediate sync performed");
 
 		
 	}
+	
+	public void populateIJacketAAgeDataSet(){
+		long idThomas = this.populatePeople("tcarlyle@gmail.com", "Thomas Vilarinho", "tcarlyle@gmail.com", "no description");
+		//long idThomas = addsMeToPeople();
+		
+		long idAage = this.populatePeople("aage.lillefot@gmail.com", "Aage Lillefot", "aage.lillefot@gmail.com", "Rescue member (network responsible)");
+		
+		if( linksMeToPeople() <1)
+			Log.d(LOG_TAG, "error linking people and me");
+
+		
+		long iJacketID =  populateService("org.societies.thirdpartyservices.ijacket",SocialContract.ServiceConstants.SERVICE_TYPE_PROVIDER, 
+		 		"iJacket", "A service to communicate with the smart Jacket",SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED
+		 		,"org.societies.thirdpartyservices.ijacketclient","","http://files.ubicollab.org/app/iJacket.apk",0);
+
+		long iJacketClientID =  populateService("org.societies.thirdpartyservices.ijacketclient",SocialContract.ServiceConstants.SERVICE_TYPE_CLIENT, 
+		 		"iJacketClient", "A service client for remote control of the smart Jacket",SocialContract.ServiceConstants.SERVICE_NOT_INSTALLED
+		 		,"","","http://files.ubicollab.org/app/iJacketClient.apk",0);
+		
+		
+	}
+
 
     /** Called when the user touches the button */
     public void clickButton(View view) {
     	accountName = fetchAccountName();
     	cleanUpDb();
-    	//populateIJacketClienDataSet();
-    	populateIDisasterDataSet();
-    	Toast.makeText(PopulateUbiShare.this, "done populating", Toast.LENGTH_SHORT).show();
+    	//populateIJacketAAgeDataSet();Toast.makeText(PopulateUbiShare.this, "done populating AAge Dataset", Toast.LENGTH_SHORT).show();
+    	populateIDisasterDataSet();Toast.makeText(PopulateUbiShare.this, "done populating Idisaster", Toast.LENGTH_SHORT).show();
+    	//populateIJacketThomasDataSet();Toast.makeText(PopulateUbiShare.this, "done populating ThomasDataset", Toast.LENGTH_SHORT).show();
     }
 
 	
@@ -154,8 +191,17 @@ public class PopulateUbiShare extends Activity {
     	nb = cr.delete(SocialContract.Services.CONTENT_URI,mSelectionClause,mSelectionArgs);
     	Log.d(LOG_TAG, nb + " Services deleted");
        	
-    	// CLEAN SYNCHRONIZED tables; BY SETTING THE DELETE FLAG TO 1
+    	// clean sharing instances whose id_community id 0
+    	mSelectionClause = SocialContract.Sharing._ID_COMMUNITY + " = ?";
+    	String[]  mSelectionArgs2 = {"0"};
+    	nb = cr.delete(SocialContract.Sharing.CONTENT_URI,mSelectionClause,mSelectionArgs2);
+    	Log.d(LOG_TAG, nb + " Sharing instances with community eq 0 deleted");
     	
+    	
+    	
+    	// CLEAN SYNCHRONIZED tables; BY SETTING THE DELETE FLAG TO 1
+
+    	/*
     	// clean Communities table 
     	mSelectionClause = SocialContract.Communities._ID + " LIKE ?";
     	ContentValues mUpdateValues = new ContentValues();
@@ -190,6 +236,7 @@ public class PopulateUbiShare extends Activity {
     	mUpdateValues.put(SocialContract.Relationship.DELETED, 1);
     	nb = cr.update(SocialContract.Relationship.CONTENT_URI,mUpdateValues,mSelectionClause,mSelectionArgs);
     	Log.d(LOG_TAG, nb + " Relationship deleted");
+    	*/
     	
     	return 1;
     }
@@ -348,31 +395,44 @@ public class PopulateUbiShare extends Activity {
 		Uri responseURI = cr.insert(uri,initialValues);
 		
 		if(null == responseURI){
-			Log.d(LOG_TAG, "failed trying to add the user on Communities table");
+			Log.d(LOG_TAG, "failed trying to add the community on Communities table");
 			return 0;
 		}
 		
 		long community_id = ContentUris.parseId(responseURI);
 		
+		if(populateMembership(owner,community_id,"owner")>1)
+			return community_id;
+		else
+			return 0; // there was an error adding the membership
+	}
+
+	
+	// returns the membershipID
+	private long populateMembership(long people_id, long community_id, String typeOfMembership){
+
+		ContentValues initialValues = new ContentValues();
 		initialValues = new ContentValues();
 		initialValues.put(SocialContract.Membership.ACCOUNT_NAME , accountName);
 		initialValues.put(SocialContract.Membership.ACCOUNT_TYPE , accountType);
 		initialValues.put(SocialContract.Membership.DIRTY , 1);
 		initialValues.put(SocialContract.Membership._ID_COMMUNITY, community_id);
-		initialValues.put(SocialContract.Membership._ID_MEMBER,owner);
-		initialValues.put(SocialContract.Membership.TYPE,"owner");
+		initialValues.put(SocialContract.Membership._ID_MEMBER,people_id);
+		initialValues.put(SocialContract.Membership.TYPE,typeOfMembership);
 
-		uri = Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.MEMBERSHIP);
-		responseURI = cr.insert(uri,initialValues);
+		Uri uri = Uri.parse(SocialContract.AUTHORITY_STRING + SocialContract.UriPathIndex.MEMBERSHIP);
+		Uri responseURI = cr.insert(uri,initialValues);
 		
 		if(null == responseURI){
 			Log.d(LOG_TAG, "failed trying to add the user as owner of ther community");
 			return 0;
 		}
+		else{
+			return ContentUris.parseId(responseURI);
+		}
 
-		
-		return community_id;
 	}
+
 	
 	/**
 	 * 
@@ -411,7 +471,7 @@ public class PopulateUbiShare extends Activity {
 
 	
 	// return People ID
-    private long addsMeToPeople(){
+/*    private long addsMeToPeople(){
 		if(accountName.equals(""))
 			accountName = fetchAccountName();
 		long idPeople_forMe = this.populatePeople(accountName, "My Name", accountName, "no description");
@@ -426,9 +486,50 @@ public class PopulateUbiShare extends Activity {
 		
 		return idPeople_forMe;
        		
+       	}*/
+
+
+    private long linksMeToPeople(){
+		if(accountName.equals(""))
+			accountName = fetchAccountName();
+		
+		// get peopleID
+		long idPeople;
+		String	mSelectionClause = SocialContract.People.USER_NAME + " = ? and " + SocialContract.People.ACCOUNT_TYPE + " = ?" ; 
+		String[]  mSelectionArgs = {accountName,accountType};
+    	Cursor c = cr.query(SocialContract.People.CONTENT_URI,null,mSelectionClause,mSelectionArgs, null);
+      	if (null == c || c.getCount() < 1){
+       		Log.d(LOG_TAG, "could not find me on people CSS id");
+       		return 0;
+       	}
+       	else{
+       		if (c.getCount() > 1){ 
+       			Log.d(LOG_TAG, "too many entries in people for me!! id");
+       			return 0;
+       		}else{
+       			int i  = c.getColumnIndex(SocialContract.People._ID);
+   		    	c.moveToNext();
+   		    	idPeople = c.getLong(i);
+   		    	Log.d(LOG_TAG, "id people for this owner " + idPeople);
+       		}
+       	}
+      	if(idPeople < 1){
+      		Log.d(LOG_TAG, "fail: people equals " + idPeople);
+      		return 0;
+      	}
+
+    	// update ME table 
+    	mSelectionClause = SocialContract.Me.ACCOUNT_NAME +  " = ? and " + SocialContract.Me.ACCOUNT_TYPE + " = ?" ; 
+		String[]  mSelectionArgs1 = {accountName,accountType};
+    	ContentValues mUpdateValues = new ContentValues();
+    	mUpdateValues.put(SocialContract.Me._ID_PEOPLE, idPeople);
+    	int nb = cr.update(SocialContract.Me.CONTENT_URI,mUpdateValues,mSelectionClause,mSelectionArgs);
+    	Log.d(LOG_TAG, nb + " me account updated");
+		
+    	return idPeople;
        	}
 
-	
+    
 	
 	// METHODS TO BE REWORKED
 	
