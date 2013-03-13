@@ -401,10 +401,13 @@ public class PopulateUbiShare extends Activity {
 		
 		long community_id = ContentUris.parseId(responseURI);
 		
-		if(populateMembership(owner,community_id,"owner")>1)
+		if(populateMembership(owner,community_id,"owner")>0){
 			return community_id;
-		else
+		}
+		else{
+			Log.d(LOG_TAG, "error adding owner to community");
 			return 0; // there was an error adding the membership
+		}
 	}
 
 	
@@ -413,6 +416,7 @@ public class PopulateUbiShare extends Activity {
 
 		ContentValues initialValues = new ContentValues();
 		initialValues = new ContentValues();
+		initialValues.put(SocialContract.Membership.GLOBAL_ID , SocialContract.GLOBAL_ID_PENDING);
 		initialValues.put(SocialContract.Membership.ACCOUNT_NAME , accountName);
 		initialValues.put(SocialContract.Membership.ACCOUNT_TYPE , accountType);
 		initialValues.put(SocialContract.Membership.DIRTY , 1);
@@ -451,9 +455,11 @@ public class PopulateUbiShare extends Activity {
 	    // now we add the community
 		ContentValues initialValues = new ContentValues();
 		
+		initialValues.put(SocialContract.Sharing.GLOBAL_ID , SocialContract.GLOBAL_ID_PENDING);
 		initialValues.put(SocialContract.Sharing._ID_COMMUNITY, communityID);
 		initialValues.put(SocialContract.Sharing._ID_OWNER , ownerID);
 		initialValues.put(SocialContract.Sharing._ID_SERVICE , serviceID);
+		initialValues.put(SocialContract.Sharing.TYPE , SocialContract.ServiceConstants.SERVICE_SHARED);
 		initialValues.put(SocialContract.Sharing.ACCOUNT_NAME , accountName);
 		initialValues.put(SocialContract.Sharing.ACCOUNT_TYPE , accountType);
 		initialValues.put(SocialContract.Sharing.DIRTY , 1);
@@ -523,7 +529,8 @@ public class PopulateUbiShare extends Activity {
 		String[]  mSelectionArgs1 = {accountName,accountType};
     	ContentValues mUpdateValues = new ContentValues();
     	mUpdateValues.put(SocialContract.Me._ID_PEOPLE, idPeople);
-    	int nb = cr.update(SocialContract.Me.CONTENT_URI,mUpdateValues,mSelectionClause,mSelectionArgs);
+    	mUpdateValues.put(SocialContract.Me.DIRTY, 1);
+    	int nb = cr.update(SocialContract.Me.CONTENT_URI,mUpdateValues,mSelectionClause,mSelectionArgs1);
     	Log.d(LOG_TAG, nb + " me account updated");
 		
     	return idPeople;
